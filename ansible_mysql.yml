@@ -9,11 +9,15 @@
   vars_prompt:
   
   - name: mysql_root_password
-    prompt: "Define Mysql Root Password:"
+    prompt: "Define Mysql Root Password"
   - name: mysql_zabbix_password
-    prompt: "Define the Mysql zabbix Password: "
+    prompt: "Define the Mysql zabbix Password"
 
   tasks:
+    - name: Update Apt-get Cache
+      apt:
+        update_cache: yes
+
     - name: Install mysql
       apt:
         name: mysql-server
@@ -79,3 +83,6 @@
        - 127.0.0.1
        - ::1
        - localhost
+
+    - name: Populate the Mysql Zabbix new DB
+      shell: zcat /usr/share/doc/zabbix-sql-scripts/mysql/create.sql.gz | mysql -u zabbix -p "{{ mysql_root_password }}"

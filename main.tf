@@ -52,7 +52,9 @@ resource "aws_instance" "zabbix" {
       sudo apt install software-properties-common
       sudo add-apt-repository --yes --update ppa:ansible/ansible
       sudo apt install ansible -y
-      #zcat /usr/share/doc/zabbix-sql-scripts/mysql/create.sql.gz | mysql -u zabbbix -p aws*2021#mysql
+      sudo apt install git -y
+      sleep 120
+      git clone https://github.com/lucasrf1984/terraform.git
       EOF
 
 }
