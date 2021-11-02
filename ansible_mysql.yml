@@ -6,9 +6,12 @@
   become_user: root
   gather_facts: yes
   connection: ssh
-  vars:
-    mysql_root_password: "zabbix*2021#CNS"
-    mysql_zabbix_password: "cns#ZABBIX*2021"
+  vars_prompt:
+  
+  - name: mysql_root_password
+    prompt: "Define Mysql Root Password:"
+  - name: mysql_zabbix_password
+    prompt: "Define the Mysql zabbix Password: "
 
   tasks:
     - name: Install mysql
