@@ -1,0 +1,78 @@
+---
+- hosts: "localhost"
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: yes
+  connection: ssh
+  vars:
+    mysql_root_password: "zabbix*2021#CNS"
+    mysql_zabbix_password: "cns#ZABBIX*2021"
+
+  tasks:
+    - name: Install mysql
+      apt:
+        name: mysql-server
+        update_cache: yes
+        state: present
+
+    - name:
+      apt:
+        name: python-pip
+        state: present
+    - name: "Installing apt dependencies"
+      apt:
+        name: "{{item}}"
+      with_items:
+        - python-pip
+        - python-dev
+        - libmysqlclient-dev
+
+    - name: "Installing pip dependencies"
+      become: yes
+      pip:
+        name: MySQL-python
+        version: 1.2.3
+
+    - name: Mysql Service start
+      systemd:
+        state: started
+        enabled: yes
+        name: mysql
+
+    - name:  update mysql root password for all root accounts
+      mysql_user:
+        name: root
+        host: "{{ item }}"
+        password: "{{ mysql_root_password }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        check_implicit_admin: yes
+        priv: "*.*:ALL,GRANT"
+      with_items:
+       - "{{ ansible_hostname }}"
+       - 127.0.0.1
+       - ::1
+       - localhost
+
+    - name: Create zabbix database
+      mysql_db:
+        name: zabbix
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name:  update mysql root password for all root accounts
+      mysql_user:
+        name: zabbix
+        host: "{{ item }}"
+        password: "{{ mysql_zabbix_password }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        priv: "zabbix.*:ALL,GRANT"
+      with_items:
+       - "{{ ansible_hostname }}"
+       - 127.0.0.1
+       - ::1
+       - localhost
