@@ -24,23 +24,24 @@
         update_cache: yes
         state: present
 
-    - name:
+    - name: Installing python pip dependency
       apt:
-        name: python-pip
+        name: python3-pip
         state: present
+
     - name: "Installing apt dependencies"
       apt:
         name: "{{item}}"
       with_items:
-        - python-pip
-        - python-dev
+        - python3-pip
+        - python3-dev
         - libmysqlclient-dev
 
     - name: "Installing pip dependencies"
       become: yes
       pip:
-        name: MySQL-python
-        version: 1.2.3
+        name: pymysql
+        state: present
 
     - name: Mysql Service start
       systemd:
