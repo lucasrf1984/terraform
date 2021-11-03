@@ -25,7 +25,7 @@
       apt:
         update_cache: yes
 
-    - name:
+    - name: Installing Zabbix application
       apt:
         name:
           - zabbix-server-mysql
@@ -34,12 +34,12 @@
           - zabbix-sql-scripts
           - zabbix-agent
         state: present
-        
+
     - name: Install mysql
       apt:
         name: mysql-server
         update_cache: yes
-        state: absent
+        state: present
 
 
     - name: Installing python pip dependency
