@@ -34,13 +34,7 @@
           - zabbix-sql-scripts
           - zabbix-agent
         state: present
-
-    - name: Remove mysql
-      apt:
-        name: mysql-server
-        update_cache: yes
-        state: absent
-
+        
     - name: Install mysql
       apt:
         name: mysql-server

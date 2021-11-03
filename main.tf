@@ -102,8 +102,8 @@ resource "aws_instance" "zabbix" {
       sudo add-apt-repository --yes --update ppa:ansible/ansible
       sudo apt install ansible -y
       sudo apt install git -y
-      sudo timedatectl set-timezone America/Sao_Paulolucasrf1984/terraform
-      git clone https://github.com/
+      sudo timedatectl set-timezone America/Sao_Paulo
+      git clone https://github.com/lucasrf1984/terraform
       EOF
 }
 
