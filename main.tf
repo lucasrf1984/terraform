@@ -1,12 +1,13 @@
 locals {
-  
+
   ssh_user = "ubuntu"
   key_name= "zabbix-aws"
+  private_key_path = "/root/terraform/zabbix-aws.pem"
 }
 
 provider "aws" {
    region     = "us-east-1"
-   
+
 }
 
 data "aws_ami" "ubuntu" {
@@ -60,7 +61,7 @@ resource "aws_security_group" "zabbix" {
    {
      cidr_blocks      = [ "0.0.0.0/0", ]
      description      = ""
-     from_port        = 10050 
+     from_port        = 10050
      ipv6_cidr_blocks = []
      prefix_list_ids  = []
      protocol         = "all"
@@ -73,8 +74,8 @@ resource "aws_security_group" "zabbix" {
 
 resource "aws_instance" "zabbix" {
 
-    ami = data.aws_ami.ubuntu.id  
-    instance_type = "t2.micro" 
+    ami = data.aws_ami.ubuntu.id
+    instance_type = "t2.micro"
     key_name= local.key_name
     vpc_security_group_ids = [aws_security_group.main.id]
     associate_public_ip_address = true
@@ -98,15 +99,32 @@ resource "aws_instance" "zabbix" {
       sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       sudo chmod +x /usr/local/bin/docker-compose
       sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-      sudo apt install software-properties-common
-      sudo add-apt-repository --yes --update ppa:ansible/ansible
-      sudo apt install ansible -y
       sudo apt install git -y
-      sudo timedatectl set-timezone America/Sao_Paulo
-      git clone https://github.com/lucasrf1984/terraform
       EOF
 }
 
+#IP of aws instance copied to a file ip.txt in local system
+resource "local_file" "ip" {
+    content  = aws_instance.zabbix.public_ip
+    filename = "inventory"
+}
+
+#connecting to the Ansible control node using SSH connection
+resource "null_resource" "nullremote1" {
+depends_on = [aws_instance.zabbix]
+
+connection {
+ type     = "ssh"
+ user     = "root"
+ private_key = file(local.private_key_path)
+ host = aws_instance.zabbix.public_ip
+}
+
+provisioner "local-exec" {
+  command = "ansible-playbook --private-key /root/terraform/zabbix-aws.pem -u ubuntu ansible_mysql.yml"
+}
+
+}
 output "zabbix_ip" {
   value = aws_instance.zabbix.public_ip
 }
