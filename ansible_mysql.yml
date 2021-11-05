@@ -1,23 +1,29 @@
 ---
-- hosts: "localhost"
+- hosts: all
   remote_user: ubuntu
   become: yes
   become_method: sudo
   become_user: root
   gather_facts: yes
   connection: ssh
-  vars_prompt:
-
-  - name: mysql_root_password
-    prompt: "Define the Mysql root Password"
-
-  - name: mysql_zabbix_password
-    prompt: "Define the Mysql zabbix Password"
+  vars:
+    mysql_root_password: test123
+    mysql_zabbix_password: test12345
 
   handlers:
     - name: Restart MySQL
       systemd:
         name: mysql
+        state: restarted
+
+    - name: Restart Apache
+      systemd:
+        name: apache2
+        state: restarted
+    
+    - name: Restart Zabbix
+      systemd:
+        name: zabbix-server
         state: restarted
 
   tasks:
@@ -81,7 +87,7 @@
         name: root
         host: localhost
         login_unix_socket: /var/run/mysqld/mysqld.sock
-        password: "{{mysql_root_password }}"
+        password: '{{ mysql_root_password }}'
         priv: '*.*:ALL,GRANT'
         check_implicit_admin: true
       become: yes
@@ -103,4 +109,11 @@
         priv: "zabbix.*:ALL,GRANT"
 
     - name: Populate the Mysql Zabbix new DB
-      shell: zcat /usr/share/doc/zabbix-sql-scripts/mysql/create.sql.gz | mysql --database -u zabbix -p "{{ mysql_zabbix_password }}"
+      become: yes
+      shell: zcat /usr/share/doc/zabbix-sql-scripts/mysql/create.sql.gz | mysql --database zabbix -u zabbix --password='{{ mysql_zabbix_password }}'
+      notify: Restart Apache
+
+    - name: Restart Zabbix Server
+      systemd:
+        name: zabbix-server
+        state: restarted
