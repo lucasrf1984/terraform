@@ -2,7 +2,7 @@ locals {
 
   ssh_user = "ubuntu"
   key_name= "zabbix-aws"
-  private_key_path = "/root/terraform/zabbix-aws.pem"
+  private_key_path = "/home/lucas/terraform/zabbix-aws.pem"
 }
 
 provider "aws" {
@@ -93,7 +93,7 @@ resource "aws_instance" "zabbix" {
       sudo apt-get install docker-ce docker-ce-cli containerd.io -y
       sudo systemctl enable docker
       sudo systemctl start docker
-      systemctl adduser ubuntu docker
+      sudo adduser ubuntu docker
       sudo apt-get install zip -y
       sudo apt-get install zcat
       sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -111,17 +111,18 @@ resource "local_file" "ip" {
 
 #connecting to the Ansible control node using SSH connection
 resource "null_resource" "nullremote1" {
-depends_on = [aws_instance.zabbix]
-
-connection {
- type     = "ssh"
- user     = "root"
- private_key = file(local.private_key_path)
- host = aws_instance.zabbix.public_ip
+  provisioner "remote-exec" {
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key = file(local.private_key_path)
+      host = aws_instance.zabbix.public_ip
+}
+    inline = ["echo 'SSH connection is finally available!'"]
 }
 
 provisioner "local-exec" {
-  command = "ansible-playbook --private-key /root/terraform/zabbix-aws.pem -u ubuntu ansible_mysql.yml"
+  command = "ansible-playbook -i inventory --private-key /home/lucas/terraform/zabbix-aws.pem -u ubuntu ansible_mysql.yml"
 }
 
 }
