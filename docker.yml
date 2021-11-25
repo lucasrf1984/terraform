@@ -1,0 +1,74 @@
+- name:  Remove Docker engine and components
+  become: yes
+  apt: 
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - docker
+    - docker-engine
+    - docker.io
+    - containerd
+    - runc
+
+- name: Install docker pre-req
+  become: yes
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    state: present
+  with_items:
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
+
+- name: Download docker certiticates keys
+  become: yes
+  command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+- name: Install the docker certificate keys
+  become: yes
+  command: echo  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+- name: Install Docker & Update cache
+  become: yes
+  apt: 
+    name: "{{ item }}"
+    update_cache: yes
+    state: present
+  with_items:
+    - docker
+    - docker-engine
+    - docker.io
+    - containerd
+    - runc
+
+- name: Enable and start the docker service
+  become: yes
+  systemd: 
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Add user ubuntu to docker group
+  become: yes
+  command: adduser ubuntu docker
+
+- name: Download docker-compose
+  become: yes
+  command: sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+- name: Make docker-compose executable
+  become: yes
+  command: chmod +x /usr/local/bin/docker-compose
+
+- name: Make a symbolic link to docker-compose
+  become: yes
+  ansible.builtin.file:
+    src: /usr/local/bin/docker-compose
+    dest: /usr/bin/docker-compose
+    owner: docker
+    group: docker
+    state: link
+
+- 

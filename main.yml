@@ -1,0 +1,20 @@
+---
+- hosts: all
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: yes
+  connection: ssh
+  roles:
+    - docker
+
+  tasks:
+
+- name: Include tools installation playbook.
+  import_playbook: tools.yml
+
+- name: Include tools installation playbook.
+  import_playbook: ansible_mysql.yml
+
+ 

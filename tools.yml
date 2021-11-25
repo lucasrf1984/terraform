@@ -1,0 +1,15 @@
+---
+- hosts: all
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: yes
+  connection: ssh
+  tasks:
+  - name: Install Program tools
+    apt: 
+      name: ['zip', 'git'] 
+      update_cache: yes
+      state: present
+    become: yes

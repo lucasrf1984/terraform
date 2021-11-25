@@ -80,26 +80,14 @@ resource "aws_instance" "zabbix" {
     vpc_security_group_ids = [aws_security_group.main.id]
     associate_public_ip_address = true
 
+  tags = {
+    Name = "AWS-Zabbix"
+  }
+
     user_data = <<-EOF
       #!/bin/bash
       wget https://repo.zabbix.com/zabbix/5.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.4-1+ubuntu20.04_all.deb
       dpkg -i zabbix-release_5.4-1+ubuntu20.04_all.deb
-      apt update -qq
-      sudo apt-get remove docker docker-engine docker.io containerd runc
-      sudo apt-get install ca-certificates curl gnupg lsb-release -y
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-      echo  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      sudo apt-get update -qq
-      sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-      sudo systemctl enable docker
-      sudo systemctl start docker
-      sudo adduser ubuntu docker
-      sudo apt-get install zip -y
-      sudo apt-get install zcat
-      sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      sudo chmod +x /usr/local/bin/docker-compose
-      sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-      sudo apt install git -y
       EOF
 }
 
@@ -122,7 +110,7 @@ resource "null_resource" "nullremote1" {
 }
 
 provisioner "local-exec" {
-  command = "ansible-playbook -i inventory --private-key /home/lucas/terraform/zabbix-aws.pem -u ubuntu ansible_mysql.yml"
+  command = "ansible-playbook -i inventory --private-key /home/lucas/terraform/zabbix-aws.pem -u ubuntu main.yml"
 }
 
 }
